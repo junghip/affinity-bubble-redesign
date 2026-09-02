@@ -17,6 +17,9 @@
 
 * {
   box-sizing: border-box;
+}
+
+html, body, button, input, textarea, select {
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -30,6 +33,10 @@ body {
 
 button {
   font-family: inherit;
+}
+
+svg {
+  flex-shrink: 0;
 }
 
 .topbar {
@@ -656,12 +663,17 @@ button {
   width: 16px;
   height: 16px;
   flex: none;
+  display: block;
+  overflow: visible;
 }
 
 .btn-ext {
   width: 12px;
   height: 12px;
+  flex: none;
+  display: block;
   opacity: 0.55;
+  overflow: visible;
 }
 
 .guide-wrap {
