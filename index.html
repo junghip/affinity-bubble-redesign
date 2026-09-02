@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affinity Bubble · 프로젝트 전환</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <div class="logo-word">Affinity Bubble</div>
+      </div>
+      <button type="button" class="switcher-btn open" id="switcherBtn" data-action="toggle-panel">
+        <svg class="switcher-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <div class="switcher-text">
+          <span class="switcher-label">Project</span>
+          <span class="switcher-name" id="switcherName">에브리타임 사용자 피드백 분석</span>
+        </div>
+        <span class="switcher-chev">⌄</span>
+      </button>
+    </div>
+    <div class="user-badge">
+      <div class="avatar">예</div>
+      <span class="plan-tag">FREE</span>
+    </div>
+
+    <div class="switch-panel show" id="switchPanel">
+      <div class="sp-head">
+        <div class="sp-tabs">
+          <button type="button" class="active" id="tabAll" data-tab="all">전체 프로젝트</button>
+          <button type="button" id="tabFav" data-tab="fav">즐겨찾기</button>
+          <button type="button" id="tabRecent" data-tab="recent">최근</button>
+        </div>
+        <div class="sp-head-right">
+          <div class="sp-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="#8f95a5" stroke-width="2"/>
+              <path d="m20 20-3.5-3.5" stroke="#8f95a5" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input id="searchInput" placeholder="프로젝트 검색">
+          </div>
+          <button type="button" class="sp-close" data-action="toggle-panel">✕</button>
+        </div>
+      </div>
+
+      <div class="sp-body">
+        <div class="sp-col">
+          <div class="sp-col-title">프로젝트</div>
+          <div id="projectList"></div>
+        </div>
+        <div class="sp-col right">
+          <div class="sp-col-title-row">
+            <div class="sp-col-title">저장된 어피니티버블</div>
+            <button type="button" class="add-bubble-btn" data-action="open-wizard" data-new="false">+ 새 버블</button>
+          </div>
+          <div id="analysisList"></div>
+        </div>
+      </div>
+
+      <div class="sp-foot">
+        <span class="sp-foot-hint">프로젝트마다 여러 개의 어피니티버블 분석을 버전별로 저장해요.</span>
+        <button type="button" class="new-proj-btn" data-action="open-wizard" data-new="true">+ 새 프로젝트 만들기</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="backdrop" id="backdrop" data-action="toggle-panel"></div>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div class="menu-icon">☰</div>
+      <button type="button" class="analyze-btn">+ 새 탭에서 분석하기</button>
+      <div class="sb-title">분석하기</div>
+      <div class="sb-item on">어피니티버블 분석</div>
+      <div class="sb-title">데이터 다듬기</div>
+      <div class="sb-item">데이터 전처리</div>
+      <div class="sb-item">설문 전처리</div>
+      <div class="sb-title">데이터 불러오기</div>
+      <div class="sb-item">앱 리뷰 수집</div>
+      <div class="sb-item">유튜브 댓글 수집</div>
+    </aside>
+    <main class="main">
+      <h1>분석할 데이터를 입력하세요.</h1>
+      <div class="drop-card">
+        텍스트를 붙여넣거나 CSV 파일을 드롭하세요.
+        <div class="drop-plus">+</div>
+      </div>
+      <div class="quick-row">
+        <button type="button">📱 앱 리뷰 불러오기</button>
+        <button type="button">▶ 유튜브 댓글 불러오기</button>
+        <button type="button">샘플 데이터 ⌄</button>
+      </div>
+    </main>
+  </div>
+
+  <div class="wiz-backdrop" id="wizBackdrop">
+    <div class="wiz-modal">
+      <div class="wiz-pane" id="wizName">
+        <div class="wiz-topbar">
+          <span class="wiz-title-sm">새 프로젝트 만들기</span>
+          <button type="button" class="wiz-x" data-action="close-wizard">✕</button>
+        </div>
+        <div class="wiz-name-body">
+          <label class="wiz-label" for="newProjectName">프로젝트 이름</label>
+          <input class="wiz-input" id="newProjectName" placeholder="예: 에브리타임 앱 리뷰 분석" autocomplete="off">
+          <p class="wiz-hint">프로젝트 하나에 여러 개의 버블(분석)을 버전처럼 계속 쌓을 수 있어요. 예: 앱 리뷰를 주기적으로 돌리거나, 같은 프로젝트 안에서 사용자 인터뷰를 별도 버블로 분석할 수 있어요.</p>
+        </div>
+        <div class="wiz-footbar">
+          <span></span>
+          <button type="button" class="wiz-next" id="nameNextBtn" data-action="go-stepper" disabled>다음</button>
+        </div>
+      </div>
+
+      <div class="wiz-pane wiz-stepper" id="wizStepper">
+        <div class="wiz-topbar">
+          <span class="wiz-title-sm" id="wizProjectLabel">프로젝트</span>
+          <button type="button" class="wiz-x" data-action="close-wizard">✕</button>
+        </div>
+
+        <div class="wiz-steps">
+          <div class="wiz-step" id="dot1"><span class="wiz-step-circle">1</span><span class="wiz-step-line"></span></div>
+          <div class="wiz-step" id="dot2"><span class="wiz-step-circle">2</span><span class="wiz-step-line"></span></div>
+          <div class="wiz-step" id="dot3"><span class="wiz-step-circle">3</span></div>
+        </div>
+
+        <div class="wiz-step-body" id="stepBody1">
+          <div class="wiz-step-title">1. 버블 생성에 사용할 데이터 선택</div>
+          <p class="wiz-step-desc">파일 업로드, 앱 리뷰·유튜브 댓글 불러오기, 샘플 데이터를 함께 골라 하나의 버블로 합칠 수 있어요. 예: 앱 리뷰 + 사용자 인터뷰를 한 번에 분석.</p>
+
+          <div class="data-cols">
+            <div class="data-col">
+              <div class="data-col-head"><span>새 데이터 업로드</span><span class="data-col-note">업로드 즉시 아카이브에 자동 저장</span></div>
+              <div class="dropzone" id="dropzone" data-source="upload">
+                <div class="dz-icon">⇧</div>
+                <div class="dz-text">파일을 끌어다 놓거나 클릭해서 업로드</div>
+                <button class="dz-btn" type="button" data-source="upload">파일 선택</button>
+              </div>
+
+              <div class="quick-fetch-card">
+                <button type="button" class="quick-fetch-btn" data-source="appreview">
+                  <span class="qf-icon">📱</span> 앱 리뷰 불러오기 <span class="qf-ext">↗</span>
+                </button>
+                <button type="button" class="quick-fetch-btn" data-source="youtube">
+                  <span class="qf-icon">▶</span> 유튜브 댓글 불러오기 <span class="qf-ext">↗</span>
+                </button>
+                <button type="button" class="quick-fetch-btn" data-source="sample">
+                  샘플 데이터 <span class="qf-ext">⌄</span>
+                </button>
+              </div>
+
+              <div class="upload-list" id="uploadList"></div>
+            </div>
+
+            <div class="data-col">
+              <div class="data-col-head"><span>저장된 데이터에서 선택</span><span class="data-col-note" id="selCountNote">선택됨 0개</span></div>
+              <div class="ds-search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="#8f95a5" stroke-width="2"/>
+                  <path d="m20 20-3.5-3.5" stroke="#8f95a5" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input id="dsSearch" placeholder="데이터명, 태그로 검색">
+              </div>
+              <div class="ds-list" id="dsList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wiz-step-body" id="stepBody2">
+          <div class="wiz-step-title">2. 분석 관점 설정</div>
+          <p class="wiz-step-desc">이 버블을 어떤 관점으로 묶어서 볼지 정해주세요.</p>
+
+          <div class="cfg-bar no-margin">
+            <div class="cfg-row">
+              <div class="cfg-label">분석 관점</div>
+              <div class="persp-tabs">
+                <button type="button" class="on" data-lens>주제별</button>
+                <button type="button" data-lens>사용자인터뷰</button>
+                <button type="button" data-lens>퍼소나</button>
+                <button type="button" data-lens>키워드</button>
+                <button type="button" data-lens>+ 새 관점</button>
+              </div>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">분석 관점 상세</div>
+              <textarea class="wiz-textarea" id="lensDetail" rows="2">주제에 따라 5개에서 9개의 덩어리로 분류해줘</textarea>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">하위 레이블 상세</div>
+              <input class="wiz-input" id="labelDetail" value="~해요.체로 적어줘">
+            </div>
+          </div>
+        </div>
+
+        <div class="wiz-step-body" id="stepBody3">
+          <div class="wiz-step-title">3. 버블 이름 확인 후 생성</div>
+          <p class="wiz-step-desc">버전이나 회차를 이름에 남겨두면 나중에 히스토리에서 구분하기 쉬워요. 예: v4.0.1 버그 개선</p>
+
+          <label class="wiz-label" for="bubbleName">버블 이름</label>
+          <input class="wiz-input mb" id="bubbleName" placeholder="예: v4.0.1 버그 개선">
+
+          <div class="confirm-box">
+            <div class="confirm-row"><span class="confirm-k">프로젝트</span><span class="confirm-v" id="confirmProject">-</span></div>
+            <div class="confirm-row"><span class="confirm-k">사용 데이터</span><span class="confirm-v" id="confirmData">-</span></div>
+            <div class="confirm-row"><span class="confirm-k">분석 관점</span><span class="confirm-v" id="confirmLens">주제별</span></div>
+          </div>
+        </div>
+
+        <div class="wiz-footbar">
+          <button type="button" class="wiz-back" id="wizBackBtn" data-action="step-back">이전</button>
+          <button type="button" class="wiz-next" id="wizNextBtn" data-action="step-next">다음</button>
+        </div>
+      </div>
+
+      <div class="wiz-pane" id="wizDone">
+        <div class="wiz-done-body">
+          <div class="wiz-done-icon">✓</div>
+          <div class="wiz-done-title">버블이 생성됐어요</div>
+          <div class="wiz-done-sub" id="wizDoneSub"></div>
+          <button type="button" class="wiz-next" data-action="go-app">결과 보기 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

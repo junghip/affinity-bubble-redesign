@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Affinity Bubble · 프로젝트 전환</title>
+<style>
+  :root{
+    --topbar:#e7ebf1;
+    --sidebar:#ffffff;
+    --main-bg:#eef1f6;
+    --card:#ffffff;
+    --border:#e4e8f0;
+    --ink:#1c2130;
+    --ink-mid:#5b6272;
+    --ink-soft:#8f95a5;
+    --teal:#18c3a6;
+    --teal-deep:#0e9f88;
+    --teal-tint:#e3f9f5;
+    --orange:#f2a93b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--main-bg);color:var(--ink);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── top bar ─────────────────────────── */
+  .topbar{
+    height:60px;background:var(--topbar);display:flex;align-items:center;
+    justify-content:space-between;padding:0 20px;position:relative;z-index:20;
+  }
+  .topbar-left{display:flex;align-items:center;gap:6px;}
+  .logo{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;}
+  .logo-icon{
+    width:26px;height:26px;border-radius:7px;flex:none;
+    background:linear-gradient(135deg,var(--teal),var(--orange));
+  }
+  .logo-word{font-size:16.5px;font-weight:800;letter-spacing:-.01em;}
+
+  .switcher-btn{
+    display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);
+    padding:7px 12px 7px 10px;border-radius:9px;cursor:pointer;margin-left:6px;transition:.12s;
+    max-width:340px;
+  }
+  .switcher-btn:hover{border-color:var(--teal);}
+  .switcher-btn.open{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-tint);}
+  .switcher-icon{width:16px;height:16px;flex:none;color:var(--ink-soft);}
+  .switcher-text{display:flex;flex-direction:column;line-height:1.25;min-width:0;}
+  .switcher-label{font-size:9.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
+  .switcher-name{font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+  .switcher-chev{font-size:11px;color:var(--ink-soft);flex:none;transition:transform .15s;}
+  .switcher-btn.open .switcher-chev{transform:rotate(180deg);}
+
+  .user-badge{display:flex;align-items:center;gap:8px;}
+  .avatar{width:28px;height:28px;border-radius:50%;background:#1c3d33;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .plan-tag{font-size:11px;font-weight:700;color:var(--ink-mid);background:#fff;border:1px solid var(--border);padding:3px 9px;border-radius:999px;}
+
+  /* ── backdrop + dropdown panel ───────── */
+  .backdrop{position:fixed;inset:0;background:rgba(20,25,40,.08);z-index:15;display:none;}
+  .backdrop.show{display:block;}
+
+  .switch-panel{
+    position:absolute;top:68px;left:20px;width:700px;max-width:calc(100vw - 40px);
+    background:#fff;border:1px solid var(--border);border-radius:16px;
+    box-shadow:0 12px 32px -8px rgba(20,25,40,.22), 0 2px 8px rgba(20,25,40,.08);
+    z-index:25;display:none;overflow:hidden;
+  }
+  .switch-panel.show{display:block;}
+
+  .sp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;}
+  .sp-tabs{display:flex;gap:4px;}
+  .sp-tabs button{
+    border:none;background:transparent;padding:8px 14px;border-radius:8px;
+    font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;
+  }
+  .sp-tabs button.active{color:var(--teal-deep);background:var(--teal-tint);}
+  .sp-search{
+    display:flex;align-items:center;gap:8px;background:var(--main-bg);border:1px solid var(--border);
+    border-radius:9px;padding:7px 12px;width:200px;
+  }
+  .sp-search input{border:none;background:none;outline:none;font-size:12.5px;color:var(--ink);width:100%;}
+  .sp-search input::placeholder{color:var(--ink-soft);}
+  .sp-close{border:none;background:none;color:var(--ink-soft);font-size:15px;cursor:pointer;padding:4px 6px;margin-left:6px;}
+  .sp-close:hover{color:var(--ink);}
+
+  .sp-body{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);}
+  .sp-col{padding:14px 8px 14px 18px;max-height:340px;overflow-y:auto;}
+  .sp-col.right{border-left:1px solid var(--border);padding-left:18px;}
+  .sp-col-title{font-size:11px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin:2px 0 10px;padding-right:10px;}
+
+  .proj-row{
+    display:flex;flex-direction:column;gap:2px;padding:10px 10px 10px 12px;border-radius:9px;
+    cursor:pointer;margin-right:8px;position:relative;
+  }
+  .proj-row{opacity:.5;transition:opacity .12s;}
+  .proj-row:hover{background:#f5f7fa;opacity:.85;}
+  .proj-row.selected{opacity:1;}
+  .proj-name{font-size:13px;font-weight:700;color:var(--ink);}
+  .proj-meta{font-size:11px;color:var(--ink-soft);}
+  .star{margin-left:auto;font-size:12px;color:var(--orange);}
+  .proj-row-top{display:flex;align-items:center;gap:6px;}
+
+  .an-row{padding:10px 10px 10px 12px;border-radius:9px;margin-right:8px;}
+  .an-row:hover{background:#f5f7fa;}
+  .an-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+  .an-meta{font-size:11px;color:var(--ink-soft);}
+  .empty-hint{font-size:12px;color:var(--ink-soft);padding:10px 12px;}
+
+  .sp-foot{
+    display:flex;align-items:center;justify-content:space-between;padding:12px 18px;
+    border-top:1px solid var(--border);background:#fbfcfe;
+  }
+  .sp-foot-hint{font-size:11.5px;color:var(--ink-soft);}
+  .new-proj-btn{
+    display:flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;
+    padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;
+  }
+  .new-proj-btn:hover{background:var(--teal-deep);}
+
+  /* ── app shell below (unchanged look) ─── */
+  .app-body{display:flex;}
+  .sidebar{
+    width:250px;background:var(--sidebar);min-height:calc(100vh - 60px);
+    padding:20px 18px;border-right:1px solid var(--border);
+  }
+  .menu-icon{width:34px;height:34px;border-radius:9px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--ink-mid);}
+  .analyze-btn{
+    display:block;text-align:center;border:1.5px solid var(--teal);color:var(--teal-deep);
+    background:#fff;border-radius:999px;padding:11px;font-size:13px;font-weight:700;
+    margin-bottom:22px;cursor:pointer;
+  }
+  .sb-title{font-size:11px;color:var(--ink-soft);font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.02em;}
+  .sb-item{font-size:13.5px;color:var(--ink);padding:8px 4px;border-radius:7px;cursor:pointer;font-weight:600;}
+  .sb-item.on{color:var(--teal-deep);font-weight:800;}
+  .sb-item:hover{background:#f5f7fa;}
+
+  .main{flex:1;padding:60px 40px;display:flex;flex-direction:column;align-items:center;}
+  .main h1{font-size:30px;font-weight:800;margin:0 0 26px;}
+  .drop-card{
+    width:100%;max-width:820px;background:#f3f5f8;border-radius:18px;padding:26px 28px;min-height:140px;
+    color:var(--ink-soft);font-size:14px;position:relative;
+  }
+  .drop-plus{
+    width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-mid);margin-top:16px;
+  }
+  .quick-row{display:flex;gap:10px;margin-top:18px;}
+  .quick-row button{
+    border:1px solid var(--border);background:#fff;padding:9px 16px;border-radius:999px;
+    font-size:12.5px;font-weight:700;color:var(--ink-mid);cursor:pointer;
+  }
+
+  /* ── project switcher: add-bubble row ── */
+  .sp-col-title-row{display:flex;align-items:center;justify-content:space-between;padding-right:10px;margin-bottom:4px;}
+  .sp-col-title-row .sp-col-title{margin:0;}
+  .add-bubble-btn{
+    border:1px solid var(--border);background:#fff;color:var(--teal-deep);font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:999px;cursor:pointer;
+  }
+  .add-bubble-btn:hover{border-color:var(--teal);}
+
+  /* ══════════════ WIZARD MODAL ══════════════ */
+  .wiz-backdrop{
+    position:fixed;inset:0;background:rgba(15,20,32,.45);z-index:50;
+    display:none;align-items:center;justify-content:center;padding:24px;
+  }
+  .wiz-backdrop.show{display:flex;}
+  .wiz-modal{
+    width:860px;max-width:100%;max-height:88vh;background:#fff;border-radius:20px;
+    box-shadow:0 24px 64px -16px rgba(15,20,32,.35);overflow:hidden;display:flex;flex-direction:column;
+  }
+  .wiz-topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex:none;}
+  .wiz-title-sm{font-size:14.5px;font-weight:800;}
+  .wiz-x{border:none;background:none;font-size:15px;color:var(--ink-soft);cursor:pointer;padding:4px 6px;}
+  .wiz-x:hover{color:var(--ink);}
+
+  .wiz-name-body{padding:28px 26px 10px;}
+  .wiz-label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-mid);margin-bottom:8px;}
+  .wiz-input{
+    width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;
+    color:var(--ink);outline:none;font-family:inherit;
+  }
+  .wiz-input:focus{border-color:var(--teal);}
+  .wiz-hint{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:14px;background:var(--main-bg);padding:12px 14px;border-radius:10px;}
+
+  .wiz-footbar{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-top:1px solid var(--border);flex:none;}
+  .wiz-next{border:none;background:var(--teal);color:#fff;font-size:13px;font-weight:700;padding:10px 22px;border-radius:9px;cursor:pointer;}
+  .wiz-next:hover{background:var(--teal-deep);}
+  .wiz-next:disabled{background:#d7dbe2;cursor:not-allowed;}
+  .wiz-back{border:1px solid var(--border);background:#fff;color:var(--ink-mid);font-size:13px;font-weight:700;padding:10px 20px;border-radius:9px;cursor:pointer;}
+  .wiz-back:hover{border-color:#c7ccd6;}
+  .wiz-back:disabled{opacity:0;pointer-events:none;}
+
+  .wiz-steps{display:flex;align-items:center;justify-content:center;gap:0;padding:22px 22px 4px;flex:none;}
+  .wiz-step{display:flex;align-items:center;}
+  .wiz-step-circle{
+    width:28px;height:28px;border-radius:50%;background:#eef0f4;color:var(--ink-soft);
+    font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  }
+  .wiz-step.on .wiz-step-circle{background:var(--ink);color:#fff;}
+  .wiz-step.done .wiz-step-circle{background:var(--teal);color:#fff;}
+  .wiz-step-line{width:64px;height:2px;background:#e4e8f0;margin:0 6px;}
+  .wiz-step.done .wiz-step-line{background:var(--teal);}
+
+  .wiz-step-body{padding:18px 26px 8px;overflow-y:auto;flex:1;}
+  .wiz-step-title{font-size:15.5px;font-weight:800;margin-bottom:4px;}
+  .wiz-step-desc{font-size:12px;color:var(--ink-mid);margin:0 0 18px;line-height:1.55;}
+
+  .data-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .data-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .data-col-head span:first-child{font-size:13px;font-weight:800;}
+  .data-col-note{font-size:10.5px;color:var(--ink-soft);font-weight:600;}
+  #selCountNote{color:var(--teal-deep);}
+
+  .dropzone{
+    border:1.5px dashed var(--border);border-radius:14px;padding:26px 16px;text-align:center;cursor:pointer;
+    background:#fbfcfe;transition:.12s;
+  }
+  .dropzone:hover{border-color:var(--teal);background:var(--teal-tint);}
+  .dz-icon{font-size:20px;color:var(--ink-soft);margin-bottom:6px;}
+  .dz-text{font-size:12px;color:var(--ink-mid);margin-bottom:12px;}
+  .dz-btn{border:1.5px solid var(--ink);background:#fff;color:var(--ink);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;}
+
+  .quick-fetch-card{
+    background:var(--main-bg);border-radius:12px;padding:12px;margin-top:12px;
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .quick-fetch-btn{
+    display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);
+    padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;color:var(--ink-mid);cursor:pointer;
+  }
+  .quick-fetch-btn:hover{border-color:var(--teal);color:var(--teal-deep);}
+  .qf-icon{font-size:12px;}
+  .qf-ext{font-size:10px;color:var(--ink-soft);}
+
+
+  .upload-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .upload-row{display:flex;align-items:center;gap:10px;}
+  .upload-doc-icon{font-size:14px;color:var(--ink-soft);flex:none;}
+  .upload-info{flex:1;min-width:0;}
+  .upload-name{font-size:11.5px;color:var(--ink-mid);font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .upload-bar{height:4px;border-radius:3px;background:#eef0f4;overflow:hidden;}
+  .upload-bar-fill{height:100%;background:var(--teal);border-radius:3px;}
+  .upload-status{font-size:10.5px;font-weight:700;flex:none;}
+  .upload-status.done{color:var(--teal-deep);}
+  .upload-status.ing{color:var(--ink-soft);}
+
+  .ds-search{
+    display:flex;align-items:center;gap:8px;background:var(--main-bg);border:1px solid var(--border);
+    border-radius:9px;padding:8px 12px;margin-bottom:10px;
+  }
+  .ds-search input{border:none;background:none;outline:none;font-size:12.5px;color:var(--ink);width:100%;}
+  .ds-list{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow-y:auto;}
+  .ds-row{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;
+  }
+  .ds-row:hover{background:#f5f7fa;}
+  .ds-row.checked{background:var(--teal-tint);border-color:#bfeee6;}
+  .ds-check{
+    width:17px;height:17px;border-radius:5px;border:1.5px solid #c7ccd6;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;background:#fff;
+  }
+  .ds-row.checked .ds-check{background:var(--teal);border-color:var(--teal);}
+  .ds-name{font-size:12.5px;font-weight:700;color:var(--ink);}
+  .ds-meta{font-size:11px;color:var(--ink-soft);}
+
+  .wiz-textarea{
+    width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 13px;font-size:12.5px;color:var(--ink-mid);
+    background:#fbfcfe;font-family:inherit;resize:vertical;
+  }
+
+  .confirm-box{background:var(--main-bg);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:11px;}
+  .confirm-row{display:flex;gap:16px;}
+  .confirm-k{font-size:12px;font-weight:700;color:var(--ink-soft);width:78px;flex:none;}
+  .confirm-v{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.5;}
+
+  .cfg-bar{background:var(--main-bg);border-radius:14px;padding:16px 18px;}
+  .cfg-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;}
+  .cfg-row:last-child{margin-bottom:0;}
+  .cfg-label{font-size:12px;font-weight:700;color:var(--ink-mid);width:88px;flex:none;padding-top:8px;}
+  .persp-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .persp-tabs button{
+    border:1px solid var(--border);background:#fff;padding:8px 15px;border-radius:999px;
+    font-size:12px;font-weight:700;color:var(--ink-mid);cursor:pointer;
+  }
+  .persp-tabs button.on{border-color:var(--teal);color:var(--teal-deep);background:var(--teal-tint);}
+
+
+  .wiz-done-body{padding:50px 30px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .wiz-done-icon{
+    width:52px;height:52px;border-radius:50%;background:var(--teal-tint);color:var(--teal-deep);
+    font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+  }
+  .wiz-done-title{font-size:17px;font-weight:800;margin-bottom:8px;}
+  .wiz-done-sub{font-size:12.5px;color:var(--ink-mid);margin-bottom:22px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <div class="logo-word">Affinity Bubble</div>
+      </div>
+      <div class="switcher-btn open" id="switcherBtn" onclick="togglePanel()">
+        <svg class="switcher-icon" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.6"/></svg>
+        <div class="switcher-text">
+          <span class="switcher-label">Project</span>
+          <span class="switcher-name" id="switcherName">에브리타임 사용자 피드백 분석</span>
+        </div>
+        <span class="switcher-chev">⌄</span>
+      </div>
+    </div>
+    <div class="user-badge">
+      <div class="avatar">예</div>
+      <span class="plan-tag">FREE</span>
+    </div>
+
+    <!-- ══ dropdown panel ══ -->
+    <div class="switch-panel show" id="switchPanel">
+      <div class="sp-head">
+        <div class="sp-tabs">
+          <button class="active" id="tabAll" onclick="setTab('all')">전체 프로젝트</button>
+          <button id="tabFav" onclick="setTab('fav')">즐겨찾기</button>
+          <button id="tabRecent" onclick="setTab('recent')">최근</button>
+        </div>
+        <div style="display:flex;align-items:center;">
+          <div class="sp-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8f95a5" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="#8f95a5" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="searchInput" placeholder="프로젝트 검색" oninput="renderProjects()">
+          </div>
+          <button class="sp-close" onclick="togglePanel()">✕</button>
+        </div>
+      </div>
+
+      <div class="sp-body">
+        <div class="sp-col">
+          <div class="sp-col-title">프로젝트</div>
+          <div id="projectList"></div>
+        </div>
+        <div class="sp-col right">
+          <div class="sp-col-title-row">
+            <div class="sp-col-title">저장된 어피니티버블</div>
+            <button class="add-bubble-btn" onclick="openWizard(false)">+ 새 버블</button>
+          </div>
+          <div id="analysisList"></div>
+        </div>
+      </div>
+
+      <div class="sp-foot">
+        <span class="sp-foot-hint">프로젝트마다 여러 개의 어피니티버블 분석을 버전별로 저장해요.</span>
+        <button class="new-proj-btn" onclick="openWizard(true)">+ 새 프로젝트 만들기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="backdrop" id="backdrop" onclick="togglePanel()"></div>
+
+  <!-- ══ app shell (기존 어피니티버블 홈 화면 유지) ══ -->
+  <div class="app-body">
+    <div class="sidebar">
+      <div class="menu-icon">☰</div>
+      <button class="analyze-btn">+ 새 탭에서 분석하기</button>
+      <div class="sb-title">분석하기</div>
+      <div class="sb-item on">어피니티버블 분석</div>
+      <div class="sb-title">데이터 다듬기</div>
+      <div class="sb-item">데이터 전처리</div>
+      <div class="sb-item">설문 전처리</div>
+      <div class="sb-title">데이터 불러오기</div>
+      <div class="sb-item">앱 리뷰 수집</div>
+      <div class="sb-item">유튜브 댓글 수집</div>
+    </div>
+    <div class="main">
+      <h1>분석할 데이터를 입력하세요.</h1>
+      <div class="drop-card">
+        텍스트를 붙여넣거나 CSV 파일을 드롭하세요.
+        <div class="drop-plus">+</div>
+      </div>
+      <div class="quick-row">
+        <button>📱 앱 리뷰 불러오기</button>
+        <button>▶ 유튜브 댓글 불러오기</button>
+        <button>샘플 데이터 ⌄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ WIZARD MODAL: 새 프로젝트 / 새 버블 만들기 ══════════════ -->
+  <div class="wiz-backdrop" id="wizBackdrop">
+    <div class="wiz-modal">
+
+      <!-- pre-step: 프로젝트 이름 (새 프로젝트일 때만) -->
+      <div class="wiz-pane" id="wizName">
+        <div class="wiz-topbar">
+          <span class="wiz-title-sm">새 프로젝트 만들기</span>
+          <button class="wiz-x" onclick="closeWizard()">✕</button>
+        </div>
+        <div class="wiz-name-body">
+          <label class="wiz-label">프로젝트 이름</label>
+          <input class="wiz-input" id="newProjectName" placeholder="예: 에브리타임 앱 리뷰 분석" autocomplete="off">
+          <p class="wiz-hint">프로젝트 하나에 여러 개의 버블(분석)을 버전처럼 계속 쌓을 수 있어요. 예: 앱 리뷰를 주기적으로 돌리거나, 같은 프로젝트 안에서 사용자 인터뷰를 별도 버블로 분석할 수 있어요.</p>
+        </div>
+        <div class="wiz-footbar">
+          <span></span>
+          <button class="wiz-next" id="nameNextBtn" onclick="goToStepper()" disabled>다음</button>
+        </div>
+      </div>
+
+      <!-- stepper pane: 1 데이터 / 2 관점 / 3 확인 -->
+      <div class="wiz-pane" id="wizStepper" style="display:none;">
+        <div class="wiz-topbar">
+          <span class="wiz-title-sm" id="wizProjectLabel">프로젝트</span>
+          <button class="wiz-x" onclick="closeWizard()">✕</button>
+        </div>
+
+        <div class="wiz-steps">
+          <div class="wiz-step" id="dot1"><span class="wiz-step-circle">1</span><span class="wiz-step-line"></span></div>
+          <div class="wiz-step" id="dot2"><span class="wiz-step-circle">2</span><span class="wiz-step-line"></span></div>
+          <div class="wiz-step" id="dot3"><span class="wiz-step-circle">3</span></div>
+        </div>
+
+        <!-- STEP 1: 데이터 선택 -->
+        <div class="wiz-step-body" id="stepBody1">
+          <div class="wiz-step-title">1. 버블 생성에 사용할 데이터 선택</div>
+          <p class="wiz-step-desc">파일 업로드, 앱 리뷰·유튜브 댓글 불러오기, 샘플 데이터를 함께 골라 하나의 버블로 합칠 수 있어요. 예: 앱 리뷰 + 사용자 인터뷰를 한 번에 분석.</p>
+
+          <div class="data-cols">
+            <div class="data-col">
+              <div class="data-col-head"><span>새 데이터 업로드</span><span class="data-col-note">업로드 즉시 아카이브에 자동 저장</span></div>
+              <div class="dropzone" id="dropzone" onclick="addSource('upload')">
+                <div class="dz-icon">⇧</div>
+                <div class="dz-text">파일을 끌어다 놓거나 클릭해서 업로드</div>
+                <button class="dz-btn" type="button">파일 선택</button>
+              </div>
+
+              <div class="quick-fetch-card">
+                <button class="quick-fetch-btn" onclick="addSource('appreview')">
+                  <span class="qf-icon">📱</span> 앱 리뷰 불러오기 <span class="qf-ext">↗</span>
+                </button>
+                <button class="quick-fetch-btn" onclick="addSource('youtube')">
+                  <span class="qf-icon">▶</span> 유튜브 댓글 불러오기 <span class="qf-ext">↗</span>
+                </button>
+                <button class="quick-fetch-btn" onclick="addSource('sample')">
+                  샘플 데이터 <span class="qf-ext">⌄</span>
+                </button>
+              </div>
+
+              <div class="upload-list" id="uploadList"></div>
+            </div>
+
+            <div class="data-col">
+              <div class="data-col-head"><span>저장된 데이터에서 선택</span><span class="data-col-note" id="selCountNote">선택됨 0개</span></div>
+              <div class="ds-search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#8f95a5" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="#8f95a5" stroke-width="2" stroke-linecap="round"/></svg>
+                <input id="dsSearch" placeholder="데이터명, 태그로 검색" oninput="renderSavedData()">
+              </div>
+              <div class="ds-list" id="dsList"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: 분석 관점 -->
+        <div class="wiz-step-body" id="stepBody2" style="display:none;">
+          <div class="wiz-step-title">2. 분석 관점 설정</div>
+          <p class="wiz-step-desc">이 버블을 어떤 관점으로 묶어서 볼지 정해주세요.</p>
+
+          <div class="cfg-bar" style="margin-bottom:0;">
+            <div class="cfg-row">
+              <div class="cfg-label">분석 관점</div>
+              <div class="persp-tabs">
+                <button class="on" onclick="pickLens(this)">주제별</button>
+                <button onclick="pickLens(this)">사용자인터뷰</button>
+                <button onclick="pickLens(this)">퍼소나</button>
+                <button onclick="pickLens(this)">키워드</button>
+                <button onclick="pickLens(this)">+ 새 관점</button>
+              </div>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">분석 관점 상세</div>
+              <textarea class="wiz-textarea" id="lensDetail" rows="2">주제에 따라 5개에서 9개의 덩어리로 분류해줘</textarea>
+            </div>
+            <div class="cfg-row">
+              <div class="cfg-label">하위 레이블 상세</div>
+              <input class="wiz-input" id="labelDetail" value="~해요.체로 적어줘">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: 확인 및 생성 -->
+        <div class="wiz-step-body" id="stepBody3" style="display:none;">
+          <div class="wiz-step-title">3. 버블 이름 확인 후 생성</div>
+          <p class="wiz-step-desc">버전이나 회차를 이름에 남겨두면 나중에 히스토리에서 구분하기 쉬워요. 예: v4.0.1 버그 개선</p>
+
+          <label class="wiz-label">버블 이름</label>
+          <input class="wiz-input" id="bubbleName" placeholder="예: v4.0.1 버그 개선" style="margin-bottom:18px;">
+
+          <div class="confirm-box">
+            <div class="confirm-row"><span class="confirm-k">프로젝트</span><span class="confirm-v" id="confirmProject">-</span></div>
+            <div class="confirm-row"><span class="confirm-k">사용 데이터</span><span class="confirm-v" id="confirmData">-</span></div>
+            <div class="confirm-row"><span class="confirm-k">분석 관점</span><span class="confirm-v" id="confirmLens">주제별</span></div>
+          </div>
+        </div>
+
+        <div class="wiz-footbar">
+          <button class="wiz-back" id="wizBackBtn" onclick="stepBack()">이전</button>
+          <button class="wiz-next" id="wizNextBtn" onclick="stepNext()">다음</button>
+        </div>
+      </div>
+
+      <!-- done pane -->
+      <div class="wiz-pane" id="wizDone" style="display:none;">
+        <div class="wiz-done-body">
+          <div class="wiz-done-icon">✓</div>
+          <div class="wiz-done-title">버블이 생성됐어요</div>
+          <div class="wiz-done-sub" id="wizDoneSub"></div>
+          <button class="wiz-next" onclick="window.location.href='affinity-bubble-app.html'">결과 보기 →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  var PROJECTS = [
+    {id:'p1', name:'에브리타임 사용자 피드백 분석', meta:'2026.08.20 수정', fav:true, recent:true,
+      analyses:[
+        {name:'주제별 분석 (기본)', meta:'응답 1,284건 · 08.20 수정'},
+        {name:'퍼소나별 분석', meta:'응답 1,284건 · 08.18 수정'},
+        {name:'키워드별 분석', meta:'응답 1,284건 · 08.12 수정'}
+      ]},
+    {id:'p2', name:'머핀 앱 온보딩 인터뷰', meta:'2026.08.15 수정', fav:false, recent:true,
+      analyses:[
+        {name:'사용자 인터뷰 분석', meta:'응답 42건 · 08.15 수정'}
+      ]},
+    {id:'p3', name:'경쟁 서비스 리뷰 분석', meta:'2026.07.30 수정', fav:true, recent:false,
+      analyses:[
+        {name:'주제별 분석', meta:'응답 620건 · 07.30 수정'},
+        {name:'감정 분석', meta:'응답 620건 · 07.22 수정'}
+      ]},
+    {id:'p4', name:'동아리 발표 설문 결과', meta:'2026.07.10 수정', fav:false, recent:false,
+      analyses:[
+        {name:'주제별 분석', meta:'응답 88건 · 07.10 수정'}
+      ]}
+  ];
+
+  var currentTab = 'all';
+  var selectedId = 'p1';
+
+  function setTab(tab){
+    currentTab = tab;
+    ['tabAll','tabFav','tabRecent'].forEach(function(id){ document.getElementById(id).classList.remove('active'); });
+    document.getElementById(tab==='all'?'tabAll':(tab==='fav'?'tabFav':'tabRecent')).classList.add('active');
+    renderProjects();
+  }
+
+  function filteredProjects(){
+    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    return PROJECTS.filter(function(p){
+      if(currentTab==='fav' && !p.fav) return false;
+      if(currentTab==='recent' && !p.recent) return false;
+      if(q && p.name.toLowerCase().indexOf(q)===-1) return false;
+      return true;
+    });
+  }
+
+  function renderProjects(){
+    var list = filteredProjects();
+    var html = list.map(function(p){
+      return '<div class="proj-row'+(p.id===selectedId?' selected':'')+'" onclick="selectProject(\''+p.id+'\')">'+
+        '<div class="proj-row-top"><span class="proj-name">'+p.name+'</span>'+(p.fav?'<span class="star">★</span>':'')+'</div>'+
+        '<span class="proj-meta">'+p.meta+'</span></div>';
+    }).join('');
+    document.getElementById('projectList').innerHTML = html || '<div class="empty-hint">해당하는 프로젝트가 없어요.</div>';
+    if(!list.find(function(p){return p.id===selectedId;}) && list.length){
+      selectProject(list[0].id);
+    } else {
+      renderAnalyses();
+    }
+  }
+
+  function renderAnalyses(){
+    var p = PROJECTS.find(function(x){ return x.id===selectedId; });
+    if(!p){ document.getElementById('analysisList').innerHTML = '<div class="empty-hint">왼쪽에서 프로젝트를 선택해주세요.</div>'; return; }
+    var html = p.analyses.map(function(a){
+      return '<div class="an-row" style="cursor:pointer;" onclick="window.location.href=\'affinity-bubble-app.html\'"><div class="an-name">'+a.name+'</div><div class="an-meta">'+a.meta+'</div></div>';
+    }).join('');
+    document.getElementById('analysisList').innerHTML = html;
+  }
+
+  function selectProject(id){
+    selectedId = id;
+    renderProjects();
+    renderAnalyses();
+  }
+
+  function togglePanel(){
+    var panel = document.getElementById('switchPanel');
+    var backdrop = document.getElementById('backdrop');
+    var btn = document.getElementById('switcherBtn');
+    var willOpen = !panel.classList.contains('show');
+    panel.classList.toggle('show', willOpen);
+    backdrop.classList.toggle('show', willOpen);
+    btn.classList.toggle('open', willOpen);
+  }
+
+  /* ══════════════ WIZARD LOGIC ══════════════ */
+  var wiz = { isNewProject:false, step:1, items:[], lens:'주제별' };
+
+  function openWizard(isNewProject){
+    wiz = { isNewProject:isNewProject, step:1, items:[], lens:'주제별' };
+    document.getElementById('wizBackdrop').classList.add('show');
+    document.getElementById('wizDone').style.display = 'none';
+
+    if(isNewProject){
+      document.getElementById('wizName').style.display = 'block';
+      document.getElementById('wizStepper').style.display = 'none';
+      document.getElementById('newProjectName').value = '';
+      document.getElementById('nameNextBtn').disabled = true;
+    } else {
+      document.getElementById('wizName').style.display = 'none';
+      startStepper();
+    }
+    document.getElementById('dsSearch').value = '';
+    document.getElementById('uploadList').innerHTML = '';
+    renderSavedData();
+  }
+
+  function closeWizard(){
+    document.getElementById('wizBackdrop').classList.remove('show');
+  }
+
+  document.getElementById('newProjectName').addEventListener('input', function(e){
+    document.getElementById('nameNextBtn').disabled = e.target.value.trim().length === 0;
+  });
+
+  function goToStepper(){
+    document.getElementById('wizName').style.display = 'none';
+    startStepper();
+  }
+
+  function startStepper(){
+    document.getElementById('wizStepper').style.display = 'flex';
+    document.getElementById('wizStepper').style.flexDirection = 'column';
+    document.getElementById('wizStepper').style.flex = '1';
+    document.getElementById('wizStepper').style.minHeight = '0';
+    var proj = wiz.isNewProject ? (document.getElementById('newProjectName').value.trim() || '새 프로젝트') : PROJECTS.find(function(p){return p.id===selectedId;}).name;
+    document.getElementById('wizProjectLabel').textContent = proj + ' · 버블 만들기';
+    goStep(1);
+  }
+
+  function goStep(n){
+    wiz.step = n;
+    [1,2,3].forEach(function(i){
+      document.getElementById('stepBody'+i).style.display = (i===n) ? 'block' : 'none';
+      var dot = document.getElementById('dot'+i);
+      dot.classList.remove('on','done');
+      if(i < n) dot.classList.add('done');
+      if(i === n) dot.classList.add('on');
+    });
+    document.getElementById('wizBackBtn').disabled = (n===1);
+    document.getElementById('wizNextBtn').textContent = (n===3) ? '버블 만들기' : '다음';
+    if(n===3) fillConfirm();
+  }
+
+  function stepNext(){
+    if(wiz.step < 3){ goStep(wiz.step+1); }
+    else { createBubble(); }
+  }
+  function stepBack(){
+    if(wiz.step > 1) goStep(wiz.step-1);
+  }
+
+  /* 저장된 데이터에서 선택 = 이번 세션에서 방금 추가한 데이터만 표시 */
+  function renderSavedData(){
+    var q = document.getElementById('dsSearch').value.trim().toLowerCase();
+    var list = wiz.items.filter(function(d){ return !q || d.name.toLowerCase().indexOf(q)!==-1; });
+    var html = list.map(function(d){
+      return '<div class="ds-row'+(d.checked?' checked':'')+'" onclick="toggleItem(\''+d.id+'\')">'+
+        '<span class="ds-check">'+(d.checked?'✓':'')+'</span>'+
+        '<div><div class="ds-name">'+d.name+'</div><div class="ds-meta">'+d.meta+'</div></div></div>';
+    }).join('');
+    document.getElementById('dsList').innerHTML = html || '<div class="empty-hint">왼쪽에서 데이터를 추가하면 여기에 나타나요.</div>';
+    updateSelCount();
+  }
+
+  function toggleItem(id){
+    var it = wiz.items.find(function(x){return x.id===id;});
+    if(it) it.checked = !it.checked;
+    renderSavedData();
+  }
+
+  function updateSelCount(){
+    var n = wiz.items.filter(function(d){return d.checked;}).length;
+    document.getElementById('selCountNote').textContent = '선택됨 ' + n + '개';
+  }
+
+  var addSeq = 0;
+  var SOURCE_LABEL = {
+    upload:{icon:'📄', name:function(n){ return '신규_업로드_'+n+'.csv'; }},
+    appreview:{icon:'📱', name:function(n){ return '앱스토어 리뷰 (실시간 수집 '+n+')'; }},
+    youtube:{icon:'▶', name:function(n){ return '유튜브 댓글 (실시간 수집 '+n+')'; }},
+    sample:{icon:'✨', name:function(n){ return '샘플 데이터 '+n; }}
+  };
+
+  function addSource(type){
+    addSeq++;
+    var src = SOURCE_LABEL[type];
+    var id = 'add'+addSeq;
+    var name = src.name(addSeq);
+    var row = {id:id, name:name, icon:src.icon, pct:20};
+    wiz.uploading = wiz.uploading || [];
+    wiz.uploading.push(row);
+    renderUploads();
+    var t = setInterval(function(){
+      row.pct += 30;
+      if(row.pct >= 100){
+        row.pct = 100;
+        clearInterval(t);
+        wiz.items.push({id:id, name:name, meta:'2026-08-26 · 지금 추가됨', checked:true});
+        renderSavedData();
+      }
+      renderUploads();
+    }, 350);
+  }
+
+  function renderUploads(){
+    var html = (wiz.uploading || []).map(function(u){
+      var done = u.pct >= 100;
+      return '<div class="upload-row"><span class="upload-doc-icon">'+u.icon+'</span>'+
+        '<div class="upload-info"><div class="upload-name">'+u.name+'</div>'+
+        '<div class="upload-bar"><div class="upload-bar-fill" style="width:'+u.pct+'%;"></div></div></div>'+
+        '<span class="upload-status '+(done?'done':'ing')+'">'+(done?'저장됨':'업로드 중')+'</span></div>';
+    }).join('');
+    document.getElementById('uploadList').innerHTML = html;
+  }
+
+  function pickLens(btn){
+    document.querySelectorAll('.persp-tabs button').forEach(function(b){ b.classList.remove('on'); });
+    btn.classList.add('on');
+    wiz.lens = btn.textContent;
+  }
+
+  function fillConfirm(){
+    var proj = wiz.isNewProject ? (document.getElementById('newProjectName').value.trim() || '새 프로젝트') : PROJECTS.find(function(p){return p.id===selectedId;}).name;
+    document.getElementById('confirmProject').textContent = proj;
+
+    var picked = wiz.items.filter(function(d){return d.checked;}).map(function(d){return d.name;});
+    document.getElementById('confirmData').textContent = picked.length ? (picked.join(', ') + ' (총 '+picked.length+'개)') : '선택된 데이터 없음';
+    document.getElementById('confirmLens').textContent = wiz.lens;
+
+    if(!document.getElementById('bubbleName').value){
+      document.getElementById('bubbleName').value = wiz.lens + ' 분석';
+    }
+  }
+
+  function createBubble(){
+    var bubbleName = document.getElementById('bubbleName').value.trim() || (wiz.lens + ' 분석');
+    var totalCount = wiz.items.filter(function(d){return d.checked;}).length;
+    var today = '2026.08.26';
+    var meta = '데이터 '+totalCount+'개 조합 · '+today+' 생성';
+
+    if(wiz.isNewProject){
+      var name = document.getElementById('newProjectName').value.trim() || '새 프로젝트';
+      var newId = 'p'+(PROJECTS.length+1)+'_'+Date.now();
+      PROJECTS.unshift({id:newId, name:name, meta:today+' 수정', fav:false, recent:true, analyses:[{name:bubbleName, meta:meta}]});
+      selectedId = newId;
+      document.getElementById('wizDoneSub').innerHTML = '<b>'+name+'</b> 프로젝트가 만들어지고,<br>첫 버블 <b>'+bubbleName+'</b>이 저장됐어요.';
+    } else {
+      var p = PROJECTS.find(function(x){return x.id===selectedId;});
+      p.analyses.unshift({name:bubbleName, meta:meta});
+      p.meta = today+' 수정';
+      document.getElementById('wizDoneSub').innerHTML = '<b>'+p.name+'</b>에 새 버블<br><b>'+bubbleName+'</b>이 추가됐어요.';
+    }
+
+    document.getElementById('wizName').style.display = 'none';
+    document.getElementById('wizStepper').style.display = 'none';
+    document.getElementById('wizDone').style.display = 'block';
+    document.getElementById('bubbleName').value = '';
+    renderProjects();
+    renderAnalyses();
+  }
+
+  renderProjects();
+</script>
+</body>
+</html>
