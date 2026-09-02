@@ -5,18 +5,25 @@
   const state = {
     currentTab: "all",
     selectedId: "p1",
+    selectedBubble: null,
     addSeq: 0,
     wiz: { isNewProject: false, step: 1, items: [], lens: "주제별", uploading: [] },
   };
 
   const el = {
     switcherBtn: document.getElementById("switcherBtn"),
-    switcherName: document.getElementById("switcherName"),
+    switcherIdle: document.getElementById("switcherIdle"),
+    switcherCrumb: document.getElementById("switcherCrumb"),
+    switcherProject: document.getElementById("switcherProject"),
+    switcherBubble: document.getElementById("switcherBubble"),
     switchPanel: document.getElementById("switchPanel"),
     backdrop: document.getElementById("backdrop"),
     searchInput: document.getElementById("searchInput"),
     projectList: document.getElementById("projectList"),
     analysisList: document.getElementById("analysisList"),
+    selectedProjectLabel: document.getElementById("selectedProjectLabel"),
+    sidebarProject: document.getElementById("sidebarProject"),
+    sidebarBubble: document.getElementById("sidebarBubble"),
     wizBackdrop: document.getElementById("wizBackdrop"),
     wizName: document.getElementById("wizName"),
     wizStepper: document.getElementById("wizStepper"),
@@ -35,6 +42,8 @@
     confirmLens: document.getElementById("confirmLens"),
     bubbleName: document.getElementById("bubbleName"),
     wizDoneSub: document.getElementById("wizDoneSub"),
+    sidebar: document.getElementById("sidebar"),
+    sidebarScrim: document.getElementById("sidebarScrim"),
   };
 
   const tabIds = { all: "tabAll", fav: "tabFav", recent: "tabRecent" };
@@ -50,6 +59,45 @@
     return currentProject()?.name || "프로젝트";
   }
 
+  function currentBubbleName() {
+    if (!state.selectedBubble) return "";
+    const p = currentProject();
+    if (!p?.analyses?.length) return state.selectedBubble;
+    const match = p.analyses.find((a) => a.name === state.selectedBubble);
+    return match ? match.name : state.selectedBubble;
+  }
+
+  function persistSelection() {
+    try {
+      sessionStorage.setItem("ab.projectId", state.selectedId);
+      if (state.selectedBubble) sessionStorage.setItem("ab.chosenBubble", state.selectedBubble);
+    } catch (_) { /* ignore */ }
+  }
+
+  function restoreSelection() {
+    try {
+      const id = sessionStorage.getItem("ab.projectId");
+      if (id && projects.some((p) => p.id === id)) state.selectedId = id;
+    } catch (_) { /* ignore */ }
+  }
+
+  function updateFolderLabel() {
+    const chosen = Boolean(state.selectedBubble);
+    if (el.switcherIdle) el.switcherIdle.hidden = chosen;
+    if (el.switcherCrumb) el.switcherCrumb.hidden = !chosen;
+    if (!chosen) {
+      if (el.sidebarBubble) el.sidebarBubble.textContent = "데이터 입력 전";
+      return;
+    }
+    const project = currentProject()?.name || "프로젝트";
+    const bubble = currentBubbleName();
+    if (el.switcherProject) el.switcherProject.textContent = project;
+    if (el.switcherBubble) el.switcherBubble.textContent = bubble;
+    if (el.sidebarProject) el.sidebarProject.textContent = project;
+    if (el.sidebarBubble) el.sidebarBubble.textContent = bubble;
+    persistSelection();
+  }
+
   function setTab(tab) {
     state.currentTab = tab;
     Object.entries(tabIds).forEach(([key, id]) => {
@@ -63,10 +111,15 @@
     return projects.filter((p) => {
       if (state.currentTab === "fav" && !p.fav) return false;
       if (state.currentTab === "recent" && !p.recent) return false;
-      if (q && !p.name.toLowerCase().includes(q)) return false;
-      return true;
+      if (!q) return true;
+      const inName = p.name.toLowerCase().includes(q);
+      const inBubble = p.analyses.some((a) => a.name.toLowerCase().includes(q));
+      return inName || inBubble;
     });
   }
+
+  const chevronSvg =
+    '<svg class="proj-chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function renderProjects() {
     const list = filteredProjects();
@@ -74,12 +127,13 @@
       el.projectList.innerHTML = '<div class="empty-hint">해당하는 프로젝트가 없어요.</div>';
     } else {
       el.projectList.innerHTML = list
-        .map(
-          (p) => `<button type="button" class="proj-row${p.id === state.selectedId ? " selected" : ""}" data-project="${p.id}">
-            <div class="proj-row-top"><span class="proj-name">${p.name}</span>${p.fav ? '<span class="star">★</span>' : ""}</div>
+        .map((p) => {
+          const on = p.id === state.selectedId;
+          return `<button type="button" class="proj-row${on ? " selected" : ""}" data-project="${p.id}">
+            <div class="proj-row-top"><span class="proj-name">${p.name}</span>${on ? chevronSvg : ""}</div>
             <span class="proj-meta">${p.meta}</span>
-          </button>`
-        )
+          </button>`;
+        })
         .join("");
     }
 
@@ -92,13 +146,25 @@
 
   function renderAnalyses() {
     const p = currentProject();
+    const q = el.searchInput.value.trim().toLowerCase();
     if (!p) {
+      if (el.selectedProjectLabel) el.selectedProjectLabel.textContent = "프로젝트를 선택하세요";
       el.analysisList.innerHTML = '<div class="empty-hint">왼쪽에서 프로젝트를 선택해주세요.</div>';
       return;
     }
-    el.analysisList.innerHTML = p.analyses
+    if (el.selectedProjectLabel) el.selectedProjectLabel.textContent = p.name;
+    if (el.sidebarProject) el.sidebarProject.textContent = p.name;
+    const rows =
+      q && !p.name.toLowerCase().includes(q)
+        ? p.analyses.filter((a) => a.name.toLowerCase().includes(q))
+        : p.analyses;
+    if (!rows.length) {
+      el.analysisList.innerHTML = '<div class="empty-hint">해당하는 버블이 없어요.</div>';
+      return;
+    }
+    el.analysisList.innerHTML = rows
       .map(
-        (a) => `<button type="button" class="an-row" data-open-app>
+        (a) => `<button type="button" class="an-row${a.name === state.selectedBubble ? " selected" : ""}" data-open-app data-bubble="${encodeURIComponent(a.name)}">
           <div class="an-name">${a.name}</div>
           <div class="an-meta">${a.meta}</div>
         </button>`
@@ -108,8 +174,6 @@
 
   function selectProject(id) {
     state.selectedId = id;
-    const p = currentProject();
-    if (p) el.switcherName.textContent = p.name;
     renderProjects();
   }
 
@@ -118,6 +182,12 @@
     el.switchPanel.classList.toggle("show", willOpen);
     el.backdrop.classList.toggle("show", willOpen);
     el.switcherBtn.classList.toggle("open", willOpen);
+  }
+
+  function toggleSidebar() {
+    const willOpen = !el.sidebar.classList.contains("open");
+    el.sidebar.classList.toggle("open", willOpen);
+    el.sidebarScrim.classList.toggle("show", willOpen);
   }
 
   function hideWizardPanes() {
@@ -282,7 +352,6 @@
         analyses: [{ name: bubbleName, meta }],
       });
       state.selectedId = newId;
-      el.switcherName.textContent = name;
       el.wizDoneSub.innerHTML = `<b>${name}</b> 프로젝트가 만들어지고,<br>첫 버블 <b>${bubbleName}</b>이 저장됐어요.`;
     } else {
       const p = currentProject();
@@ -291,14 +360,22 @@
       el.wizDoneSub.innerHTML = `<b>${p.name}</b>에 새 버블<br><b>${bubbleName}</b>이 추가됐어요.`;
     }
 
+    state.selectedBubble = bubbleName;
+    updateFolderLabel();
     hideWizardPanes();
     el.wizDone.classList.add("show");
     el.bubbleName.value = "";
     renderProjects();
   }
 
-  function goToApp() {
-    window.location.href = appResultUrl;
+  function goToApp(bubbleName) {
+    if (bubbleName) state.selectedBubble = bubbleName;
+    updateFolderLabel();
+    const params = new URLSearchParams({
+      project: currentProject()?.name || projectName(),
+      bubble: state.selectedBubble,
+    });
+    window.location.href = `${appResultUrl}?${params.toString()}`;
   }
 
   function bindEvents() {
@@ -315,6 +392,7 @@
       if (!target) return;
 
       if (target.dataset.action === "toggle-panel") togglePanel();
+      else if (target.dataset.action === "toggle-sidebar") toggleSidebar();
       else if (target.dataset.action === "open-wizard") openWizard(target.dataset.new === "true");
       else if (target.dataset.action === "close-wizard") closeWizard();
       else if (target.dataset.action === "go-stepper") goToStepper();
@@ -326,10 +404,14 @@
       else if (target.dataset.source) addSource(target.dataset.source);
       else if (target.dataset.item) toggleItem(target.dataset.item);
       else if (target.dataset.lens !== undefined) pickLens(target);
-      else if (target.dataset.openApp !== undefined) goToApp();
+      else if (target.dataset.openApp !== undefined) {
+        goToApp(target.dataset.bubble ? decodeURIComponent(target.dataset.bubble) : undefined);
+      }
     });
   }
 
   bindEvents();
+  restoreSelection();
+  updateFolderLabel();
   renderProjects();
 })();

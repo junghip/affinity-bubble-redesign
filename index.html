@@ -11,62 +11,71 @@
 <body>
   <header class="topbar">
     <div class="topbar-left">
-      <div class="logo">
-        <div class="logo-icon"></div>
-        <div class="logo-word">Affinity Bubble</div>
-      </div>
-      <button type="button" class="switcher-btn open" id="switcherBtn" data-action="toggle-panel">
-        <svg class="switcher-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.6"/>
+      <a class="logo" href="index.html" aria-label="Affinity Bubble">
+        <img class="logo-img" src="assets/logo.png" alt="Affinity Bubble" height="41">
+      </a>
+      <button type="button" class="switcher-btn" id="switcherBtn" data-action="toggle-panel">
+        <svg class="switcher-icon" viewBox="0 0 16 14" fill="none" aria-hidden="true">
+          <path d="M1 12V3.5C1 2.67 1.67 2 2.5 2H4.38c.4 0 .78.16 1.06.44l.62.62c.28.28.66.44 1.06.44H12.5C13.33 3.5 14 4.17 14 5V6.5M1.07 11.76l1.86-6.19C3.12 4.93 3.7 4.5 4.37 4.5h9.71c.98 0 1.69.92 1.46 1.86l-1.13 4.5C14.24 11.53 13.64 12 12.95 12H1.25c-.13 0-.21-.12-.18-.24Z" stroke="#14B6A4" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <div class="switcher-text">
-          <span class="switcher-label">Project</span>
-          <span class="switcher-name" id="switcherName">에브리타임 사용자 피드백 분석</span>
-        </div>
-        <span class="switcher-chev">⌄</span>
+        <span class="switcher-label" id="switcherIdle">프로젝트 폴더</span>
+        <span class="switcher-label" id="switcherCrumb" hidden>
+          <b id="switcherProject"></b>
+          <span class="switcher-sep" aria-hidden="true">&gt;</span>
+          <b id="switcherBubble"></b>
+        </span>
       </button>
     </div>
     <div class="user-badge">
-      <div class="avatar">예</div>
-      <span class="plan-tag">FREE</span>
+      <div class="avatar" aria-hidden="true"></div>
+      <span class="plan-tag">USER</span>
     </div>
 
-    <div class="switch-panel show" id="switchPanel">
+    <div class="switch-panel" id="switchPanel">
       <div class="sp-head">
-        <div class="sp-tabs">
-          <button type="button" class="active" id="tabAll" data-tab="all">전체 프로젝트</button>
-          <button type="button" id="tabFav" data-tab="fav">즐겨찾기</button>
-          <button type="button" id="tabRecent" data-tab="recent">최근</button>
-        </div>
-        <div class="sp-head-right">
-          <div class="sp-search">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="11" cy="11" r="7" stroke="#8f95a5" stroke-width="2"/>
-              <path d="m20 20-3.5-3.5" stroke="#8f95a5" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <input id="searchInput" placeholder="프로젝트 검색">
+        <div class="sp-head-left">
+          <div class="sp-tabs">
+            <button type="button" class="active" id="tabAll" data-tab="all">전체 프로젝트</button>
+            <button type="button" id="tabFav" data-tab="fav">즐겨찾기</button>
+            <button type="button" id="tabRecent" data-tab="recent">최근</button>
           </div>
-          <button type="button" class="sp-close" data-action="toggle-panel">✕</button>
+          <div class="sp-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="#a5a5a5" stroke-width="2"/>
+              <path d="m20 20-3.5-3.5" stroke="#a5a5a5" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input id="searchInput" placeholder="프로젝트, 버블 검색">
+          </div>
         </div>
+        <button type="button" class="sp-close" data-action="toggle-panel" aria-label="닫기">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="#000" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
 
       <div class="sp-body">
         <div class="sp-col">
-          <div class="sp-col-title">프로젝트</div>
+          <div class="sp-col-title-row">
+            <div class="sp-col-title">프로젝트 이름</div>
+            <button type="button" class="new-proj-btn" data-action="open-wizard" data-new="true">+ 새 프로젝트 만들기</button>
+          </div>
           <div id="projectList"></div>
         </div>
         <div class="sp-col right">
-          <div class="sp-col-title-row">
-            <div class="sp-col-title">저장된 어피니티버블</div>
-            <button type="button" class="add-bubble-btn" data-action="open-wizard" data-new="false">+ 새 버블</button>
+          <div class="bubble-pane">
+            <div class="bubble-pane-kicker" id="selectedProjectLabel">에브리타임 2.0.0</div>
+            <div class="sp-col-title-row">
+              <div class="sp-col-title">버블</div>
+              <button type="button" class="add-bubble-btn" data-action="open-wizard" data-new="false">+ 새 버블</button>
+            </div>
+            <div id="analysisList"></div>
           </div>
-          <div id="analysisList"></div>
         </div>
       </div>
 
       <div class="sp-foot">
-        <span class="sp-foot-hint">프로젝트마다 여러 개의 어피니티버블 분석을 버전별로 저장해요.</span>
-        <button type="button" class="new-proj-btn" data-action="open-wizard" data-new="true">+ 새 프로젝트 만들기</button>
+        <span class="sp-foot-hint">왼쪽에서 프로젝트를 고르면, 오른쪽에 그 프로젝트에 속한 버블만 보여요.</span>
       </div>
     </div>
   </header>
@@ -74,8 +83,19 @@
   <div class="backdrop" id="backdrop" data-action="toggle-panel"></div>
 
   <div class="app-body">
-    <aside class="sidebar">
-      <div class="menu-icon">☰</div>
+    <button type="button" class="menu-fab" data-action="toggle-sidebar" aria-label="메뉴 열기">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="sidebar-scrim" id="sidebarScrim" data-action="toggle-sidebar"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-context">
+        <div class="sb-kicker">프로젝트</div>
+        <div class="sb-project" id="sidebarProject">에브리타임 2.0.0</div>
+        <div class="sb-kicker">버블</div>
+        <div class="sb-bubble" id="sidebarBubble">데이터 입력 전</div>
+      </div>
       <button type="button" class="analyze-btn">+ 새 탭에서 분석하기</button>
       <div class="sb-title">분석하기</div>
       <div class="sb-item on">어피니티버블 분석</div>
@@ -89,16 +109,40 @@
     <main class="main">
       <h1>분석할 데이터를 입력하세요.</h1>
       <div class="drop-card">
-        텍스트를 붙여넣거나 CSV 파일을 드롭하세요.
+        <span>텍스트를 붙여넣거나 CSV 파일을 드롭하세요.</span>
         <div class="drop-plus">+</div>
       </div>
       <div class="quick-row">
-        <button type="button">📱 앱 리뷰 불러오기</button>
-        <button type="button">▶ 유튜브 댓글 불러오기</button>
-        <button type="button">샘플 데이터 ⌄</button>
+        <button type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="17.2" r="1" fill="currentColor"/></svg>
+          앱 리뷰 불러오기
+          <svg class="btn-ext" viewBox="0 0 12 12" fill="none"><path d="M3 9 9 3M4.5 3H9v4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none"><path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor"/><rect x="3.5" y="6" width="17" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/></svg>
+          유튜브 댓글 불러오기
+          <svg class="btn-ext" viewBox="0 0 12 12" fill="none"><path d="M3 9 9 3M4.5 3H9v4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button">
+          샘플 데이터
+          <svg class="btn-ext" viewBox="0 0 12 12" fill="none"><path d="M3 4.5 6 8l3-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="guide-wrap">
+        <button type="button" class="guide-btn">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="8.2" r=".9" fill="currentColor"/></svg>
+          데이터 입력 가이드
+          <svg class="btn-ext" viewBox="0 0 12 12" fill="none"><path d="M3 4.5 6 8l3-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </main>
   </div>
+
+  <button type="button" class="top-fab" aria-label="맨 위로" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 19V7M12 7l-6 6M12 7l6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
 
   <div class="wiz-backdrop" id="wizBackdrop">
     <div class="wiz-modal">
@@ -113,7 +157,6 @@
           <p class="wiz-hint">프로젝트 하나에 여러 개의 버블(분석)을 버전처럼 계속 쌓을 수 있어요. 예: 앱 리뷰를 주기적으로 돌리거나, 같은 프로젝트 안에서 사용자 인터뷰를 별도 버블로 분석할 수 있어요.</p>
         </div>
         <div class="wiz-footbar">
-          <span></span>
           <button type="button" class="wiz-next" id="nameNextBtn" data-action="go-stepper" disabled>다음</button>
         </div>
       </div>
@@ -122,12 +165,6 @@
         <div class="wiz-topbar">
           <span class="wiz-title-sm" id="wizProjectLabel">프로젝트</span>
           <button type="button" class="wiz-x" data-action="close-wizard">✕</button>
-        </div>
-
-        <div class="wiz-steps">
-          <div class="wiz-step" id="dot1"><span class="wiz-step-circle">1</span><span class="wiz-step-line"></span></div>
-          <div class="wiz-step" id="dot2"><span class="wiz-step-circle">2</span><span class="wiz-step-line"></span></div>
-          <div class="wiz-step" id="dot3"><span class="wiz-step-circle">3</span></div>
         </div>
 
         <div class="wiz-step-body" id="stepBody1">
@@ -212,9 +249,16 @@
           </div>
         </div>
 
-        <div class="wiz-footbar">
-          <button type="button" class="wiz-back" id="wizBackBtn" data-action="step-back">이전</button>
-          <button type="button" class="wiz-next" id="wizNextBtn" data-action="step-next">다음</button>
+        <div class="wiz-footbar has-steps">
+          <div class="wiz-steps">
+            <div class="wiz-step" id="dot1"><span class="wiz-step-circle">1</span><span class="wiz-step-line"></span></div>
+            <div class="wiz-step" id="dot2"><span class="wiz-step-circle">2</span><span class="wiz-step-line"></span></div>
+            <div class="wiz-step" id="dot3"><span class="wiz-step-circle">3</span></div>
+          </div>
+          <div class="wiz-foot-actions">
+            <button type="button" class="wiz-back" id="wizBackBtn" data-action="step-back">이전</button>
+            <button type="button" class="wiz-next" id="wizNextBtn" data-action="step-next">다음</button>
+          </div>
         </div>
       </div>
 
